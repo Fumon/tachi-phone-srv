@@ -1,0 +1,13 @@
+[package]
+name = "tachi-phone-srv"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tera = "1"
+rust-embed="5.9.0"
+lazy_static = "1.4.0"
+globwalk="0.8.1"
+rocket = "0.4.10"
