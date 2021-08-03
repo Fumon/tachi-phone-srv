@@ -6,6 +6,9 @@ extern crate globwalk;
 use rocket::response::status;
 use rocket::response::content;
 use tera::Tera;
+use std::path::Path;
+
+mod util;
 
 use rust_embed::RustEmbed;
 
@@ -31,15 +34,23 @@ lazy_static! {
     };
 }
 
+/// Root Folder
 #[get("/")]
 fn index() -> content::Html<String> {
+    // Get Manga
+    let manga = util::get_manga(Path::new("/home/fumon/tmp/manga_s/T"));
+
     let mut context = tera::Context::new();
     context.insert("manga", &vec!["apple", "kotabaru", "san", "samar", "sonic", "blah"]);
     content::Html(TEMPLATES.render("index.html.tera", &context).unwrap())
 }
 
+/// TODO: Handle grabbing images from manga folders
+
+/// Embedded css supplier
 #[get("/theme.css")]
 fn css() -> content::Css<String> {
+    // TODO: generalize to any embedded resource
     let css = Asset::get("theme.css").unwrap().into_owned();
     content::Css(std::str::from_utf8(&css).unwrap().to_owned())
 }
