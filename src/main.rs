@@ -3,7 +3,7 @@
 #[macro_use] extern crate lazy_static;
 extern crate globwalk;
 
-use rocket::response::status;
+use rocket::http::Status;
 use rocket::response::content;
 use tera::Tera;
 use std::path::Path;
@@ -36,13 +36,51 @@ lazy_static! {
 
 /// Root Folder
 #[get("/")]
-fn index() -> content::Html<String> {
+fn index() -> Result<content::Html<String>, Status> {
     // Get Manga
-    let manga = util::get_manga(Path::new("/home/fumon/tmp/manga_s/T"));
+    let manga_res = 
+        util::get_manga(Path::new("/home/fumon/tmp/manga_s/T"));
+
+    let manga = match manga_res {
+        Ok(manga) => manga,
+        Err(_) => {
+            return Err(Status::InternalServerError)
+        }
+    };
 
     let mut context = tera::Context::new();
-    context.insert("manga", &vec!["apple", "kotabaru", "san", "samar", "sonic", "blah"]);
-    content::Html(TEMPLATES.render("index.html.tera", &context).unwrap())
+    context.insert("manga", &manga);
+
+    match TEMPLATES.render("index.html.tera", &context) {
+        Ok(t) => Ok(content::Html(t)),
+        Err(_) => Err(Status::InternalServerError)
+    }
+}
+
+/// Chapters
+#[get("/m/<title>")]
+fn chapters(title: String) -> Result<content::Html<String>, Status> {
+    let ch_res =
+        util::get_chapters(Path::new("/home/fumon/tmp/manga_s/T"), &title);
+
+    let ch = match ch_res {
+        Ok(ch) => ch,
+        Err(_) => {
+            return Err(Status::InternalServerError)
+        } 
+    };
+
+    let mut context = tera::Context::new();
+    context.insert("title", &title);
+    context.insert("chapters", &ch);
+
+    match TEMPLATES.render("manga.html.tera", &context) {
+        Ok(t) => Ok(content::Html(t)),
+        Err(e)  => {
+            dbg!(e);
+            Err(Status::InternalServerError)
+        }
+    }
 }
 
 /// TODO: Handle grabbing images from manga folders
@@ -57,6 +95,6 @@ fn css() -> content::Css<String> {
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![index, css])
+        .mount("/", routes![index, chapters, css])
         .launch();
 }

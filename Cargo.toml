@@ -12,3 +12,4 @@ lazy_static = "1.4.0"
 globwalk="0.8.1"
 rocket = "0.4.10"
 lexical-sort="0.3.1"
+serde = { version = "1.0", features = ["derive"] }

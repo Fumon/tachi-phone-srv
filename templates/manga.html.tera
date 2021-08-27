@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tachiyomi Manga Serve</title>
+    <title>{{title}} | Tachiyomi Manga Serve</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/theme.css">
 </head>
 <body>
-    <h1>Manga List</h1>
+    <h1>{{title}} Chapter List</h1>
     <div class="mlist">
-        {% for m in manga %}
+        {% for m in chapters %}
             <div class="mitem">{{loop.index}}: 
-                <a href="/m/{{m.title}}">{{m.title}}</a></div>
+                <a href="/m/{{m}}">{{m.title}}</a></div>
         {% endfor %}
     </div>
 </body>
