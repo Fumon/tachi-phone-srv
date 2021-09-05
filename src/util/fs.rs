@@ -23,8 +23,8 @@ impl LastNPath for std::fs::DirEntry {
 
 fn sort_by_last_n<T: LastNPath>(n: usize, a: &T, b: &T) -> Ordering {
     natural_lexical_only_alnum_cmp(
-        &a.last_n(2),
-        &b.last_n(2)
+        &a.last_n(n),
+        &b.last_n(n)
     )
 }
 
