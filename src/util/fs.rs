@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap, iter::FromIterator, path::{Path, PathBuf}};
 
 use globwalk::{DirEntry, GlobError, GlobWalkerBuilder};
-use lexical_sort::{natural_lexical_only_alnum_cmp};
+use lexical_sort::natural_lexical_only_alnum_cmp;
 
 use serde::Serialize;
 
