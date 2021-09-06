@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, path::{Path, PathBuf}};
+use std::{cmp::Ordering, collections::HashMap, iter::FromIterator, path::{Path, PathBuf}};
 
 use globwalk::{DirEntry, GlobError, GlobWalkerBuilder};
 use lexical_sort::{natural_lexical_only_alnum_cmp};
@@ -28,6 +28,19 @@ fn sort_by_last_n<T: LastNPath>(n: usize, a: &T, b: &T) -> Ordering {
     )
 }
 
+struct MangaDirs(HashMap<String, Vec<PathBuf>>);
+
+impl FromIterator<(String, PathBuf)> for MangaDirs {
+    fn from_iter<T: IntoIterator<Item = (String, PathBuf)>>(iter: T) -> Self {
+        let h = iter.into_iter().fold(HashMap::new(), |mut acc, (str, path)| {
+            acc.entry(str).or_insert_with(Vec::new).push(path);
+            acc
+        });
+
+        MangaDirs(h)
+    }
+}
+
 #[derive(Serialize)]
 pub struct Manga {
     title: String,
@@ -38,37 +51,21 @@ pub struct Manga {
 pub fn get_manga<'a>(manga_root: &'a Path) -> Result<Vec<Manga>, GlobError> {
     Ok(GlobWalkerBuilder::from_patterns(
         manga_root, 
-        &["downloads/*/*/*", "local/*/*"])
+        &["downloads/*/*", "local/*"])
         .file_type(globwalk::FileType::DIR)
         .sort_by(|a, b| sort_by_last_n(2, a, b))
         .build()?
-        .filter_map(|dir_res| {
-            let dir = dir_res.expect("Failed to get DirEntry");
-
-            // Series Name
-            let name = dir.path()
-                .parent()
-                .and_then(|p| p.file_name())
-                .and_then(|n| Some(n.to_string_lossy()));
-
-            // Get the first page of the first chapter if it exists
-            let first_page_path = dir.path()
-                .read_dir().map(|it|
-                    it.filter_map(Result::ok).reduce(|a, b| 
-                        match sort_by_last_n(1, &a, &b) {
-                            Ordering::Less => b,
-                            _ => a
-                        }
-                    ).and_then(|d| Some(d.path().clone()))
-                );
-            
-
-            match (name,first_page_path) {
-                (Some(n), Ok(Some(fp))) => 
-                   Some(Manga {title: n.to_string(), thumb: fp}),
-                _ => None
+        .filter_map(|dir_res|
+            match dir_res {
+                Ok(dir) => Some((dir.file_name().to_string_lossy().to_string(), dir.into_path())),
+                Err(_) => None
             }
-        }).collect()
+        ).collect::<MangaDirs>()
+       .0.iter()
+       .map(|(title, _)| {
+           Manga{title: title.to_string(), thumb: PathBuf::new()}
+       })
+       .collect()
     )
 }
 
