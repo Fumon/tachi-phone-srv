@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}} | Tachiyomi Manga Serve</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/theme.css">
+</head>
+<body>
+    <h1>{{title}} Chapter List</h1>
+    <div class="mlist">
+        {% for img in imgs %}
+            <div class="mitem">{{loop.index}}: {{img}}</div>
+        {% endfor %}
+    </div>
+</body>
+</html>

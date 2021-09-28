@@ -5,10 +5,12 @@ extern crate globwalk;
 
 use rocket::http::Status;
 use rocket::response::content;
+use seriesgetter::SeriesGetter;
 use tera::Tera;
 use std::path::Path;
 
 mod util;
+mod seriesgetter;
 
 use rust_embed::RustEmbed;
 
@@ -79,6 +81,31 @@ fn chapters(title: String) -> Result<content::Html<String>, Status> {
         Err(e)  => {
             dbg!(e);
             Err(Status::InternalServerError)
+        } 
+    }
+}
+
+#[get("/a/<title>")]
+fn all_pages(title: String) -> Result<content::Html<String>, Status> {
+    let imgs: Vec<String> = SeriesGetter::from_name(&title)
+        .all_chapters()
+        .get_image_pack(Path::new("/home/fumon/tmp/manga_s/T"))
+        .map(|it| it.lex_sorted_name())
+        .filter_map(|item| match item {
+            Ok(i) => Some(i),
+            Err(_) => None
+        })
+        .collect();
+
+    let mut context = tera::Context::new();
+    context.insert("title", &title);
+    context.insert("imgs", &imgs);
+
+    match TEMPLATES.render("imgs.html.tera", &context) {
+        Ok(t) => Ok(content::Html(t)),
+        Err(e) => {
+            dbg!(e);
+            Err(Status::InternalServerError)
         }
     }
 }
@@ -95,6 +122,6 @@ fn css() -> content::Css<String> {
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![index, chapters, css])
+        .mount("/", routes![index, chapters, all_pages, css])
         .launch();
 }
