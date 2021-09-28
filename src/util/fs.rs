@@ -61,9 +61,9 @@ pub fn get_manga<'a>(manga_root: &'a Path) -> Result<Vec<Manga>, GlobError> {
                 Err(_) => None
             }
         ).collect::<MangaDirs>()
-       .0.iter()
+       .0.into_iter()
        .map(|(title, _)| {
-           Manga{title: title.to_string(), thumb: PathBuf::new()}
+           Manga{title, thumb: PathBuf::new()}
        })
        .collect()
     )
