@@ -18,7 +18,7 @@ impl MangaImage {
             .trim_matches(|c: char| !c.is_numeric())
             .parse() {
                 Ok(num) => Ok(num),
-                Err(e) => Err("bad int".to_string())
+                Err(_e) => Err("bad int".to_string())
             }
     }
 
